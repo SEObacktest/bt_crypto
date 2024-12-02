@@ -1,7 +1,7 @@
-from .base import BaseStrategy
+from strategies.base import BaseStrategy
 import backtrader as bt
 import datetime
-class TurtleStrategy(BaseStrategy):
+class Strategy(BaseStrategy):
     params=(
         ('open_period',20),
         ('close_period',10),

@@ -1,10 +1,9 @@
 [sub_account]
-API_KEY=MTXEJs8Qr2vGGS80cFPcQv3wGMp1lS34icsvAv6ViPVrh9uB8A33n8v1Oc59McKL
-SECRET_KEY=/home/litterpigger/.binance/Private_key
-
+API_KEY=
+SECRET_KEY=
 [cerebro]
 init_cash=10000
-curr_strategy=TurtleStrategy
+curr_strategy=turtle
 commission=0.0001
 trading_pair=BTCUSDT
 start_date=20241010
