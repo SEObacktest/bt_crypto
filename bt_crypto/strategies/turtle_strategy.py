@@ -22,6 +22,9 @@ class TurtleStrategy(BaseStrategy):
         if self.broker.getposition(self.data).size>0:
             if self.low_price[0]<self.DonchianL_exit[-1]:
                 self.close()
+        while True:
+            return
         if self.broker.getposition(self.data).size<0:
             if self.high_price[0]>self.DonchianH_exit[-1]:
                 self.close()
+print('hello')
