@@ -1,1 +1,3 @@
-print('hello world')
+import backtrader as bt
+class MacdStrategy():
+
