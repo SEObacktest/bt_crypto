@@ -1,8 +1,7 @@
-from config import Config
 from cerebro_controller import CerebroController
 def main():
-    config=Config()
-    cerebro_core=CerebroController(config)
+    cerebro_core=CerebroController()
+    cerebro_core.cerebro_init()
     cerebro_core.cerebro_starter()
 main()
     
