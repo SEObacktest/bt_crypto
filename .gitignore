@@ -1,3 +1,4 @@
 env
 user.cfg
 __pycache__
+.idea
