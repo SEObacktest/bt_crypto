@@ -5,6 +5,7 @@ class TurtleStrategy(BaseStrategy):
     params=(
         ('open_period',20),
         ('close_period',10),
+        ('fixed_position',0.05)
             )
     def __init__(self):
         super().__init__()
@@ -13,12 +14,17 @@ class TurtleStrategy(BaseStrategy):
         self.DonchianH_exit=bt.indicators.Highest(self.high_price(0),period=self.params.close_period)
         self.DonchianL_entry=bt.indicators.Lowest(self.low_price(0),period=self.params.open_period)
         self.order=None
-    def notify_trade(self,trade):
-        pass 
     def next(self):
         if self.broker.getposition(self.data).size == 0:
-            self.order=self.buy(exectype=bt.Order.Stop,size=0.00001,price=self.DonchianH_entry[0],valid=self.data.datetime.date(0)+datetime.timedelta(days=1))
+            self.order=self.buy(
+                exectype=bt.Order.Stop,
+                size=self.broker.get_value()*0.05/self.DonchianL_entry[0],
+                price=self.DonchianH_entry[0],
+                valid=self.data.datetime.date(0)+datetime.timedelta(days=1)
+                )
+
             self.order=self.sell(exectype=bt.Order.Stop,size=0.00001,price=self.DonchianL_entry[0],valid=self.data.datetime.date(0)+datetime.timedelta(days=1))
+            
         if self.broker.getposition(self.data).size>0:
             if self.low_price[0]<self.DonchianL_exit[-1]:
                 self.close()

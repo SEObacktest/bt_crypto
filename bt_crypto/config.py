@@ -28,4 +28,6 @@ class Config:
         self.TOPEN_PERIOD=config.get(TURTLE_SECTION,"open_period")
         self.TCLOSE_PERIOD=config.get(TURTLE_SECTION,'close_period')
         self.CURR_PAIR=config.get(CEREBRO_SECTION,"trading_pair")
+        self.COMMISSION=config.get(CEREBRO_SECTION,"commission")
+        self.CURR_STRATEGY=config.get(CEREBRO_SECTION,"curr_strategy")
 
