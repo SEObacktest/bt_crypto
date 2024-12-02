@@ -1,7 +1,6 @@
 from typing import List,Dict,Optional
 from binance.um_futures import UMFutures
 import pandas as pd
-import polars as pl
 from config import Config
 from datetime import datetime
 from trade_enum import Side 
