@@ -1,6 +1,9 @@
 import backtrader as bt
 import datetime
 class BaseStrategy(bt.Strategy):
+    params=(
+        ('position_to_balance',0.05),
+    )
     def __init__(self):
         self.close_price=self.data.close
         self.open_price=self.data.open

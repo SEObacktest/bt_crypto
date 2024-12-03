@@ -1,19 +1,29 @@
 [sub_account]
-API_KEY=
-SECRET_KEY=
+API_KEY=MTXEJs8Qr2vGGS80cFPcQv3wGMp1lS34icsvAv6ViPVrh9uB8A33n8v1Oc59McKL
+SECRET_KEY=/home/litterpigger/.binance/Private_key
+
 [cerebro]
 init_cash=10000
-curr_strategy=turtle
+curr_strategy=bollinger
 commission=0.0001
-trading_pair=BTCUSDT
-start_date=20241010
-end_date=20241202
 fix_position=0.05
 leverage=20
+
+[data]
+trading_pair=BTCUSDT
+start_date=20240110
+end_date=20241202
 
 
 [turtle_strategy]
 open_period=20
 close_period=10
+
+[macd_strategy]
+fast=12
+slow=26
+signal=9
+[bollinger_strategy]
+
 
 

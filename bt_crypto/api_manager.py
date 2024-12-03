@@ -3,7 +3,11 @@ from binance.um_futures import UMFutures
 import pandas as pd
 from config import Config
 from datetime import datetime
-from trade_enum import Side 
+from enum import Enum
+class Side(Enum):
+    BUY:str='BUY'
+    SELL:str='SELL'
+
 class ApiManager():
     def __init__(self,config:Config):
     	self.client=UMFutures(key=config.API_KEY,private_key=config.API_SECRET)

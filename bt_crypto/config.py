@@ -4,6 +4,7 @@ import sys
 CFG_FL="user.cfg"
 ACCOUNT_SECTION="sub_account"
 CEREBRO_SECTION="cerebro"
+DATA_SECTION="data"
 TURTLE_SECTION="turtle_strategy"
 
 class Config:
@@ -23,11 +24,12 @@ class Config:
             print('Private file path is not accessable, set private key to null')
             self.API_SECRET=''
         self.INIT_BAL=config.get(CEREBRO_SECTION,"init_cash")
-        self.START_DATE=config.get(CEREBRO_SECTION,"start_date")
-        self.END_DATE=config.get(CEREBRO_SECTION,"end_date")
+        self.START_DATE=config.get(DATA_SECTION,"start_date")
+        self.END_DATE=config.get(DATA_SECTION,"end_date")
         self.TOPEN_PERIOD=config.get(TURTLE_SECTION,"open_period")
         self.TCLOSE_PERIOD=config.get(TURTLE_SECTION,'close_period')
-        self.CURR_PAIR=config.get(CEREBRO_SECTION,"trading_pair")
+        self.CURR_PAIR=config.get(DATA_SECTION,"trading_pair")
         self.COMMISSION=config.get(CEREBRO_SECTION,"commission")
-        self.CURR_STRATEGY=config.get(CEREBRO_SECTION,"curr_strategy")
+        self.CURR_STRATEGY=os.environ.get("STRATEGY") or config.get(CEREBRO_SECTION,"curr_strategy")
+        self.POSITION_TO_BALANCE=os.environ.get("POSITION_TO_BALANCE") or config.get(CEREBRO_SECTION,"fix_position")
 

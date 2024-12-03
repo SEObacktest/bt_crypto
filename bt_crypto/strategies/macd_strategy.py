@@ -1,41 +1,44 @@
+import backtrader as bt
+import datetime
 from strategies.base import BaseStrategy
-
 class Strategy(BaseStrategy):
     params = (
         ('fast', 12),
         ('slow', 26),
-        ('signal', 9)
+        ('signal', 9),
              )
     def __init__(self):
         super().__init__()
-
-        self.ema_fast_period = self.params.fast
-        self.ema_slow_period = self.params.slow
-        self.signal_period = self.params.signal
-
-        self.ema_fast = None
-        self.ema_slow = None
-        self.macd = None
-        self.signal = None
-
-    def calculate_ema(self, prev_ema, price, period):
-        if prev_ema is None:
-            return price
-        k = 2 / (period + 1)
-        return (price * k) + (prev_ema * (1 - k))
-
+        self.macd=bt.indicators.MACD(
+                self.close_price,
+                period_me1=self.p.fast,
+                period_me2=self.p.slow,
+                period_signal=self.p.signal,
+        )
+        self.crossover=bt.indicators.CrossOver(self.macd.macd,self.macd.signal)
+        self.sizer=bt.sizers.PercentSizer(percents=20)
     def next(self):
-        price = self.data.close[0]
-
-        self.ema_fast = self.calculate_ema(self.ema_fast, price, self.ema_fast_period)
-        self.ema_slow = self.calculate_ema(self.ema_slow, price, self.ema_slow_period)
-
-        self.macd = self.ema_fast - self.ema_slow
-        self.signal = self.calculate_ema(self.signal, self.macd, self.signal_period)
-
-        if not self.position:
-            if self.macd > self.signal:
-                self.order = self.buy()
+        if self.broker.getposition(self.data).size==0:
+            if self.crossover[0] >0:
+                self.buy(
+                    size=self.broker.get_value()*self.p.position_to_balance/self.close_price[0]
+                    )
+                print(f'positive crossover{self.crossover[0]}')
+            if self.crossover[0]<0:
+                self.sell(
+                    size=self.broker.get_value()*self.p.position_to_balance/self.close_price[0]
+                    )
+                print(self.crossover[0])
         else:
-            if self.macd < self.signal:
-                self.order = self.sell()
+            if self.broker.getposition(self.data).size<0:
+                if self.crossover[0]>0:
+                    self.close()
+                    self.buy(
+                        size=self.broker.get_value()*self.p.position_to_balance/self.close_price[0]
+                    )
+            else:
+                if self.crossover[0]<0:
+                    self.close()
+                    self.sell(
+                        size=self.broker.get_value()*self.p.position_to_balance/self.close_price[0]
+                    )
