@@ -26,6 +26,7 @@ class CerebroController():
     def single_strategy_runner(self):
         pass
     def multiple_strategy_runner(self):
+        pass
     def all_strategy_runner(self):
         pairs=self.bt_config.get_pairs()
         strategies=self.bt_config.get_strategies()
