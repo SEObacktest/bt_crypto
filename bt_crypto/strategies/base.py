@@ -1,18 +1,37 @@
 import backtrader as bt
 import datetime
+import os
 class BaseStrategy(bt.Strategy):
     params=(
         ('position_to_balance',0.05),
+        ('norder_visable',0)
     )
     def __init__(self):
         self.close_price=self.data.close
         self.open_price=self.data.open
         self.high_price=self.data_high
         self.low_price=self.data.low
+        self.init_cash=None
     def log(self,txt,dt=None):
         dt=dt or self.datetime.date(0)
         print(f'{dt.isoformat()}:{txt}')
+    def start(self):
+        self.init_cash=self.broker.get_value()
+    def stop(self):
+        skip_attr=['notdefault','isdefault']
+        param_info=[]
+        for name in dir(self.p):
+            if not name.startswith('_') and name not in skip_attr:
+                value = getattr(self.p, name)
+                param_info.append(f'{name}={value}')
+        param_str=' ,'.join(param_info)
+        print(f'Current Strategy:{self.__class__.__module__}')
+        print(f'Param Info:{param_str}')
+        print(f'Starting Portfolio Value:{self.init_cash:.2f}')
+        print(f'Final Protfolio value:{self.broker.get_value():.2f}\n')
     def notify_order(self,order):
+        if not self.p.norder_visable:
+            return
         if order.status is order.Submitted:
            #self.log('Order Submitted')
            pass

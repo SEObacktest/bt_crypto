@@ -23,12 +23,10 @@ class Strategy(BaseStrategy):
                 self.buy(
                     size=self.broker.get_value()*self.p.position_to_balance/self.close_price[0]
                     )
-                print(f'positive crossover{self.crossover[0]}')
             if self.crossover[0]<0:
                 self.sell(
                     size=self.broker.get_value()*self.p.position_to_balance/self.close_price[0]
                     )
-                print(self.crossover[0])
         else:
             if self.broker.getposition(self.data).size<0:
                 if self.crossover[0]>0:

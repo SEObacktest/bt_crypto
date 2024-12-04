@@ -19,12 +19,22 @@ class CerebroController():
         cerebro.addanalyzer(bt.analyzers.SharpeRatio, _name='sharpe')
         return cerebro
     def cerebro_starter(self,strategy:bt.Strategy=None):
+        cerebro=self.cerebro_init()
+        df=self.client.get_kline(
+        symbol=self.config.CURR_PAIR,
+        interval='1d',
+        start_time=self.config.START_DATE,
+        end_time=self.config.END_DATE
+        )
+        data=bt.feeds.PandasData(dataname=df,datetime=None,open=-1,close=-1,low=-1,high=-1)
+        cerebro.adddata(data)
         str_strategy=self.config.CURR_STRATEGY
         strategy=get_strategy(self.config.CURR_STRATEGY)
-        self.cerebro.addstrategy(strategy,position_to_balance=float(self.config.POSITION_TO_BALANCE))
-        self.cerebro.run()
+        cerebro.addstrategy(strategy,position_to_balance=float(self.config.POSITION_TO_BALANCE))
+        cerebro.run()
     def single_strategy_runner(self):
         pass
+        
     def multiple_strategy_runner(self):
         pass
     def all_strategy_runner(self):
@@ -63,14 +73,25 @@ class CerebroController():
 #                        print(param_config)
                     param=self._create_strategy_params(strategy_info)
                     opt_strategy=cerebro.optstrategy(strategy_module,**param) 
-                    cerebro.run(maxcpu=1)            
-    def _create_strategy_params(self,strategy_info):
+                    results=cerebro.run(maxcpu=1)  
+
+
+    def _create_strategy_params(self, strategy_info):
         params = {}
         for param_name, param_config in strategy_info['parameters'].items():
-            # 对于浮点数参数，保持浮点数形式
-            params[param_name] = range(
-                param_config['start'], 
-                param_config['end'] + param_config['step'],  # 加 step 是因为 range 是半开区间
-                param_config['step']
-            )
+            if isinstance(param_config['start'], float):
+                # 对于浮点数，创建一个浮点数序列
+                values = []
+                current = param_config['start']
+                while current <= param_config['end']:
+                    values.append(current)
+                    current += param_config['step']
+                params[param_name] = tuple(values)
+            else:
+                # 对于整数，使用 range
+                params[param_name] = range(
+                    param_config['start'],
+                    param_config['end'] + param_config['step'],
+                    param_config['step']
+                )
         return params
