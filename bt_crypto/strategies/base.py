@@ -4,7 +4,7 @@ import os
 class BaseStrategy(bt.Strategy):
     params=(
         ('position_to_balance',0.05),
-        ('norder_visable',0)
+        ('norder_visable',1)
     )
     def __init__(self):
         self.close_price=self.data.close

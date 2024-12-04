@@ -33,8 +33,20 @@ class CerebroController():
         cerebro.addstrategy(strategy,position_to_balance=float(self.config.POSITION_TO_BALANCE))
         cerebro.run()
     def single_strategy_runner(self):
-        pass
-        
+        curr_pair=self.config.CURR_PAIR
+        ava_list=self.bt_config.get_pairs()
+        if curr_pair in ava_list:
+            pair_config=self.bt_config.get_pair_config(curr_pair)
+            start_date=pair_config['start_date']
+            print(type(start_date))
+            df=self.client.get_kline(
+            symbol=self.config.CURR_PAIR,
+            interval=pair_config['interval'],
+            start_time=pair_config['start_date'],
+            end_time=pair_config['end_date']
+        )
+            print(df.head())
+            
     def multiple_strategy_runner(self):
         pass
     def all_strategy_runner(self):

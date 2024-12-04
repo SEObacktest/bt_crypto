@@ -10,7 +10,7 @@
     "data": {
         "pairs": {
             "BTCUSDT": {
-                "start_date": "20241010",
+                "start_date": "20240910",
                 "end_date": "20241202",
                 "interval": "1d"
             },
