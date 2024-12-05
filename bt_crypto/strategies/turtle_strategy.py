@@ -17,12 +17,12 @@ class Strategy(BaseStrategy):
         if self.broker.getposition(self.data).size == 0:
             self.order=self.buy(
                 exectype=bt.Order.Stop,
-                size=self.broker.get_value()*0.05/self.DonchianL_entry[0],
+                size=self.broker.get_value()*self.p.position_to_balance/self.DonchianL_entry[0],
                 price=self.DonchianH_entry[0],
                 valid=self.data.datetime.date(0)+datetime.timedelta(days=1)
                 )
 
-            self.order=self.sell(exectype=bt.Order.Stop,size=0.00001,price=self.DonchianL_entry[0],valid=self.data.datetime.date(0)+datetime.timedelta(days=1))
+            self.order=self.sell(exectype=bt.Order.Stop,size=self.broker.get_value()*self.p.position_to_balance/self.DonchianL_entry[0],price=self.DonchianL_entry[0],valid=self.data.datetime.date(0)+datetime.timedelta(days=1))
             
         if self.broker.getposition(self.data).size>0:
             if self.low_price[0]<self.DonchianL_exit[-1]:
