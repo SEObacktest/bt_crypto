@@ -5,8 +5,10 @@ from typing import Dict, List
 
 class BacktestConfig:
     """处理回测相关的配置"""
-    def __init__(self, json_path: str = "db.json"):
-        with open(json_path, 'r') as f:
+    def __init__(self):
+        curr_dir=os.path.dirname(os.path.abspath(__file__))
+        abs_db_path=os.path.join(curr_dir,'db.json')
+        with open(abs_db_path, 'r') as f:
             self.config = json.load(f)
     
     def get_pairs(self) -> List[str]:
@@ -26,8 +28,10 @@ class BacktestConfig:
     def get_strategy_config(self, strategy: str) -> Dict:
         """获取指定策略的配置"""
         return self.config['strategy'][strategy]
+    def get_basic_setting(self)->Dict:
+        return self.config['basic_setting']
 
-def load_configs(json_path="db.json"):
+def load_configs():
     """一次性加载所有配置"""
-    backtest = BacktestConfig(json_path)
+    backtest = BacktestConfig()
     return backtest

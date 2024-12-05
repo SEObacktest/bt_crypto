@@ -18,35 +18,23 @@ class CerebroController():
         cerebro.addanalyzer(bt.analyzers.DrawDown, _name='drawdown')
         cerebro.addanalyzer(bt.analyzers.SharpeRatio, _name='sharpe')
         return cerebro
-    def cerebro_starter(self,strategy:bt.Strategy=None):
+    def single_strategy_runner(self,curr_strategy=None):
         cerebro=self.cerebro_init()
-        df=self.client.get_kline(
-        symbol=self.config.CURR_PAIR,
-        interval='1d',
-        start_time=self.config.START_DATE,
-        end_time=self.config.END_DATE
-        )
-        data=bt.feeds.PandasData(dataname=df,datetime=None,open=-1,close=-1,low=-1,high=-1)
-        cerebro.adddata(data)
-        str_strategy=self.config.CURR_STRATEGY
-        strategy=get_strategy(self.config.CURR_STRATEGY)
-        cerebro.addstrategy(strategy,position_to_balance=float(self.config.POSITION_TO_BALANCE))
-        cerebro.run()
-    def single_strategy_runner(self):
         curr_pair=self.config.CURR_PAIR
         ava_list=self.bt_config.get_pairs()
         if curr_pair in ava_list:
             pair_config=self.bt_config.get_pair_config(curr_pair)
-            start_date=pair_config['start_date']
-            print(type(start_date))
             df=self.client.get_kline(
             symbol=self.config.CURR_PAIR,
-            interval=pair_config['interval'],
-            start_time=pair_config['start_date'],
-            end_time=pair_config['end_date']
+            **pair_config
         )
-            print(df.head())
-            
+        data=bt.feeds.PandasData(dataname=df,datetime=None,open=-1,low=-1,high=-1) 
+        cerebro.adddata(data)
+        str_strategy=self.config.CURR_STRATEGY
+        strategy=get_strategy(curr_strategy or str_strategy)
+        base_strategy_params=self.bt_config.get_basic_setting()
+        cerebro.addstrategy(strategy,**base_strategy_params)
+        cerebro.run()
     def multiple_strategy_runner(self):
         pass
     def all_strategy_runner(self):
@@ -54,17 +42,17 @@ class CerebroController():
         strategies=self.bt_config.get_strategies()
         for pair in pairs:
             pair_info=self.bt_config.get_pair_config(pair)
-            start_date=pair_info['start_date']
-            end_date=pair_info['end_date']
+            start_time=pair_info['start_time']
+            end_time=pair_info['end_time']
             interval=pair_info['interval']
             df=self.client.get_kline(
                 symbol=pair,
                 interval=interval,
-                start_time=start_date,
-                end_time=end_date,
+                start_time=start_time,
+                end_time=end_time,
             )
-            start_date=datetime.strptime(pair_info['start_date'],'%Y%m%d')
-            end_date=datetime.strptime(pair_info['end_date'],'%Y%m%d')
+            start_time=datetime.strptime(pair_info['start_time'],'%Y%m%d')
+            end_time=datetime.strptime(pair_info['end_time'],'%Y%m%d')
             data=bt.feeds.PandasData(dataname=df,datetime=None,open=-1,close=-1,low=-1,high=-1)
             for strategy in strategies:
                 
@@ -77,14 +65,9 @@ class CerebroController():
                     cerebro.addstrategy(strategy_module)
                     cerebro.run()
                 else:
-                    param_names = list(strategy_info['parameters'].keys())
-                    param_values = [param_config['start'] for param_config in strategy_info['parameters'].values()]
-                    params_dict = dict(zip(param_names, param_values))
-#                    print(strategy_info)
-#                    for param_config in strategy_info['parameters'].values():
-#                        print(param_config)
                     param=self._create_strategy_params(strategy_info)
-                    opt_strategy=cerebro.optstrategy(strategy_module,**param) 
+                    base_strategy_params=self.bt_config.get_basic_setting()
+                    opt_strategy=cerebro.optstrategy(strategy_module,**param,**base_strategy_params) 
                     results=cerebro.run(maxcpu=1)  
 
 
@@ -107,3 +90,4 @@ class CerebroController():
                     param_config['step']
                 )
         return params
+   
