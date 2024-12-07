@@ -1,10 +1,10 @@
-from strategies import get_strategy
+from typing import List,Tuple
+from .strategies import get_strategy
 import backtrader as bt
-from config import Config
-from api_manager import ApiManager
+from .config import Config
+from .api_manager import ApiManager
 from datetime import datetime
-from config import Config
-from utils import load_configs
+from .utils import load_configs
 class CerebroController():
     def __init__(self):
         self.config=Config()
@@ -20,7 +20,25 @@ class CerebroController():
         return cerebro
     def single_strategy_runner(self,curr_strategy=None):
         cerebro=self.cerebro_init()
-        curr_pair=self.config.CURR_PAIR
+        data=self._get_trading_data()
+        cerebro.adddata(data)
+        str_strategy=self.config.CURR_STRATEGY
+        strategy=get_strategy(curr_strategy or str_strategy)
+        base_strategy_params=self.bt_config.get_basic_setting()
+        cerebro.addstrategy(strategy,**base_strategy_params)
+        cerebro.run()
+    def multiple_strategy_runner(self,multi_strategies:List[str]=None):
+        strategy_list:[str]=multi_strategies or self.config.MUL_STRATEGIES.strip().split(',')
+        base_strategy_params:Dict=self.bt_config.get_basic_setting()
+        for strategy in strategy_list:
+            strategy_module=get_strategy(strategy)
+            cerebro=self.cerebro_init()
+            data=self._get_trading_data()
+            cerebro.adddata(data)
+            cerebro.addstrategy(strategy_module,**base_strategy_params)
+            cerebro.run()
+    def _get_trading_data(self,pair:str=None)->bt.feeds.PandasData:
+        curr_pair=pair or self.config.CURR_PAIR
         ava_list=self.bt_config.get_pairs()
         if curr_pair in ava_list:
             pair_config=self.bt_config.get_pair_config(curr_pair)
@@ -29,14 +47,7 @@ class CerebroController():
             **pair_config
         )
         data=bt.feeds.PandasData(dataname=df,datetime=None,open=-1,low=-1,high=-1) 
-        cerebro.adddata(data)
-        str_strategy=self.config.CURR_STRATEGY
-        strategy=get_strategy(curr_strategy or str_strategy)
-        base_strategy_params=self.bt_config.get_basic_setting()
-        cerebro.addstrategy(strategy,**base_strategy_params)
-        cerebro.run()
-    def multiple_strategy_runner(self):
-        pass
+        return data 
     def all_strategy_runner(self):
         pairs=self.bt_config.get_pairs()
         strategies=self.bt_config.get_strategies()
@@ -70,7 +81,6 @@ class CerebroController():
                     opt_strategy=cerebro.optstrategy(strategy_module,**param,**base_strategy_params) 
                     results=cerebro.run(maxcpu=1)  
 
-
     def _create_strategy_params(self, strategy_info):
         params = {}
         for param_name, param_config in strategy_info['parameters'].items():
@@ -90,4 +100,3 @@ class CerebroController():
                     param_config['step']
                 )
         return params
-   
