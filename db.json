@@ -1,7 +1,7 @@
 {
-    "basic_setting":{
-	"log_hidden": 1,
-	"position_to_balance": 0.1
+    "basic_setting": {
+        "log_hidden": 1,
+        "position_to_balance": 0.2
     },
     "cerebro": {
         "init_cash": 10000,
@@ -14,7 +14,7 @@
     "data": {
         "pairs": {
             "BTCUSDT": {
-                "start_time": "20240910",
+                "start_time": "20201110",
                 "end_time": "20241202",
                 "interval": "1d"
             },

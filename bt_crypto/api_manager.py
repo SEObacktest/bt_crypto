@@ -1,7 +1,7 @@
 from typing import List,Dict,Optional
 from binance.um_futures import UMFutures
 import pandas as pd
-from config import Config
+from .config import Config
 from datetime import datetime
 from enum import Enum
 class Side(Enum):

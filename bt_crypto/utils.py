@@ -6,9 +6,7 @@ from typing import Dict, List
 class BacktestConfig:
     """处理回测相关的配置"""
     def __init__(self):
-        curr_dir=os.path.dirname(os.path.abspath(__file__))
-        abs_db_path=os.path.join(curr_dir,'db.json')
-        with open(abs_db_path, 'r') as f:
+        with open('db.json', 'r') as f:
             self.config = json.load(f)
     
     def get_pairs(self) -> List[str]:
