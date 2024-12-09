@@ -6,14 +6,18 @@ import os
 from bt_crypto.api_manager import ApiManager,Side
 from bt_crypto.config import Config
 class TradingWay(Enum):
-    CLOSE_ONLY=0,
-    OPEN=1,
-    CLOSE_THEN_OPEN=2
+    CLOSE=0,
+    LONG=1,
+    SHORT=2,
+    CLOSE_THEN_LONG=3,
+    CLOSE_THEN_SHORT=4
 TradingSignal = Dict[str, Enum]
 class BaseStrategy(bt.Strategy):
     params=(
         ('position_to_balance',0.05),
-        ('log_hidden',1)
+        ('log_hidden',1),
+        ('pair','DOGEUSDT'),
+        ('livetrade',False)
     )
     def __init__(self):
         config=Config()
@@ -25,11 +29,17 @@ class BaseStrategy(bt.Strategy):
         self.low_price=self.data.low
         self.init_cash=None
         self.trading_signal:Dict=None
+        self.open_amount=None
+        self.trading_signal=None
     def log(self,txt,dt=None):
         dt=dt or self.datetime.date(0)
         print(f'{dt.isoformat()}:{txt}')
     def start(self):
+        if(self.p.livetrade):
+            print("Now it's live trading now")
+        balance=self.client.get_balance()
         self.init_cash=self.broker.get_value()
+        self.open_amount=balance*self.p.position_to_balance
     def stop(self):
         skip_attr=['notdefault','isdefault']
         param_info=[]
@@ -42,10 +52,35 @@ class BaseStrategy(bt.Strategy):
         print(f'Param Info:{param_str}')
         print(f'Starting Portfolio Value:{self.init_cash:.2f}')
         print(f'Final Protfolio value:{self.broker.get_value():.2f}\n')
-        if self.trading_signal is  not None:
-            self.client.place_order('DOGEUSDT',Side.SELL,'MARKET',12)
-        else:
-            print('No trading signal detected')
+        self.trading_signal=self.gen_trading_signal()
+        self.client.get_certain_position(self.p.pair)
+        if self.trading_signal is None:
+            print('no signal detected')
+        if self.trading_signal == TradingWay.CLOSE:
+            self.client.close_certain_position(self.p.pair)
+        if self.trading_signal==TradingWay.LONG:
+            print(self.close_price[0])
+            print(int(self.open_amount/self.close_price[0]))
+            self.client.place_order(symbol=self.p.pair,
+                             side=Side.BUY,
+                             order_type='MARKET',
+                             quantity=int(self.open_amount/self.close_price[0]))
+        if self.trading_signal==TradingWay.SHORT:
+            self.client.place_order(symbol=self.p.pair,
+                             side=Side.SELL,
+                             order_type='MARKET',
+                             quantity=int(self.open_amount/self.close_price[0]))
+        if self.trading_signal==TradingWay.CLOSE_THEN_SHORT:
+            self.client.close_then_place(symbol=self.p.pair,
+                            side=Side.SELL,
+                            order_type='MARKET',
+                            quantity=int(self.open_amount/self.close_price[0]))
+        if self.trading_signal==TradingWay.CLOSE_THEN_LONG:
+            self.client.close_then_place(symbol=self.p.pair,
+                            side=Side.BUY,
+                            order_type='MARKET',
+                            quantity=int(self.open_amount/self.close_price[0]))
+                            
     def notify_order(self,order):
         if self.p.log_hidden:
             return

@@ -6,7 +6,8 @@ def main():
     cerebro_core=CerebroController()
     cerebro_core.cerebro_init()
     #cerebro_core.all_strategy_runner()
-    cerebro_core.single_strategy_runner(curr_strategy='macd')
+    while True:
+        cerebro_core.single_strategy_runner(curr_strategy='macd')
     #cerebro_core.multiple_strategy_runner()
     #client=ApiManager(config)
     #client.place_order('DOGEUSDT',Side.BUY,order_type='MARKET',quantity=12)

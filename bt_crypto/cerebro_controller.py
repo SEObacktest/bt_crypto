@@ -38,12 +38,13 @@ class CerebroController():
             cerebro.addstrategy(strategy_module,**base_strategy_params)
             cerebro.run()
     def _get_trading_data(self,pair:str=None)->bt.feeds.PandasData:
-        curr_pair=pair or self.config.CURR_PAIR
+        trading_pair=self.bt_config.get_basic_setting()['pair']
+        curr_pair=pair or trading_pair
         ava_list=self.bt_config.get_pairs()
         if curr_pair in ava_list:
             pair_config=self.bt_config.get_pair_config(curr_pair)
             df=self.client.get_kline(
-            symbol=self.config.CURR_PAIR,
+            symbol=curr_pair,
             **pair_config
         )
         data=bt.feeds.PandasData(dataname=df,datetime=None,open=-1,low=-1,high=-1) 
