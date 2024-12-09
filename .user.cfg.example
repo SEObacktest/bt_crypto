@@ -3,11 +3,15 @@ API_KEY=MTXEJs8Qr2vGGS80cFPcQv3wGMp1lS34icsvAv6ViPVrh9uB8A33n8v1Oc59McKL
 SECRET_KEY=/home/litterpigger/.binance/Private_key
 
 [cerebro]
-init_cash=10000
-curr_strategy=bollinger
+opt_param=0
+test_mode=tuple
+init_cash=50000
+curr_strategy=macd
+multi_strategies=turtle,macd
 commission=0.0001
 fix_position=0.05
 leverage=20
+param_opt=0
 
 [data]
 trading_pair=BTCUSDT

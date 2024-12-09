@@ -1,3 +1,4 @@
+import time
 from .cerebro_controller import CerebroController
 from .api_manager import ApiManager,Side
 from .config import Config
@@ -7,7 +8,11 @@ def main():
     cerebro_core.cerebro_init()
     #cerebro_core.all_strategy_runner()
     while True:
+        start_time=time.time()
         cerebro_core.single_strategy_runner(curr_strategy='macd')
+        end_time=time.time()
+        execution_time = end_time - start_time
+        print(f"Execution time: {execution_time:.2f} seconds")
     #cerebro_core.multiple_strategy_runner()
     #client=ApiManager(config)
     #client.place_order('DOGEUSDT',Side.BUY,order_type='MARKET',quantity=12)
