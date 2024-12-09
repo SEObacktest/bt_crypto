@@ -36,7 +36,7 @@ class BaseStrategy(bt.Strategy):
         print(f'{dt.isoformat()}:{txt}')
     def start(self):
         if(self.p.livetrade):
-            print("Now it's live trading now")
+            print("You are under live trading")
         balance=self.client.get_balance()
         self.init_cash=self.broker.get_value()
         self.open_amount=balance*self.p.position_to_balance
@@ -48,12 +48,16 @@ class BaseStrategy(bt.Strategy):
                 value = getattr(self.p, name)
                 param_info.append(f'{name}={value}')
         param_str=' ,'.join(param_info)
-        print(f'Current Strategy:{self.__class__.__module__}')
-        print(f'Param Info:{param_str}')
-        print(f'Starting Portfolio Value:{self.init_cash:.2f}')
-        print(f'Final Protfolio value:{self.broker.get_value():.2f}\n')
+        if not self.p.livetrade:
+            print(f'Current Strategy:{self.__class__.__module__}')
+            print(f'Param Info:{param_str}')
+            print(f'Starting Portfolio Value:{self.init_cash:.2f}')
+            print(f'Final Protfolio value:{self.broker.get_value():.2f}\n')
         self.trading_signal=self.gen_trading_signal()
         self.client.get_certain_position(self.p.pair)
+        print(f'date:{bt.num2date(self.datetime[0]).strftime("%Y-%m-%d %H:%M:%S")}')
+        print(f'Latest price={self.close_price[0]}')
+        self.trading_signal=TradingWay.CLOSE
         if self.trading_signal is None:
             print('no signal detected')
         if self.trading_signal == TradingWay.CLOSE:
