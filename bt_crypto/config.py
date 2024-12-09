@@ -10,7 +10,6 @@ TURTLE_SECTION="turtle_strategy"
 class Config:
     def __init__(self):
         config=configparser.ConfigParser()
-        print(os.path.dirname(__file__))
         CFG_PATH = os.path.join(os.path.dirname(__file__), CFG_FL)
         if not os.path.exists(CFG_FL):
             print('No user.cfg file found under current dictionary')
