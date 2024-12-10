@@ -2,8 +2,8 @@
     "basic_setting": {
         "log_hidden": 1,
         "position_to_balance": 0.15,
-	"pair":"DOGEUSDT",
-	"livetrade":true
+        "pair": "DOGEUSDT",
+        "livetrade": true
     },
     "cerebro": {
         "init_cash": 10000,
