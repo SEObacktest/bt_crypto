@@ -57,7 +57,6 @@ class BaseStrategy(bt.Strategy):
         self.client.get_certain_position(self.p.pair)
         print(f'date:{bt.num2date(self.datetime[0]).strftime("%Y-%m-%d %H:%M:%S")}')
         print(f'Latest price={self.close_price[0]}')
-        self.trading_signal=TradingWay.CLOSE
         if self.trading_signal is None:
             print('no signal detected')
         if self.trading_signal == TradingWay.CLOSE:

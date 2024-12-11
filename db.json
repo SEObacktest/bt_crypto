@@ -28,7 +28,7 @@
             "DOGEUSDT": {
                 "start_time": "20241208",
                 "end_time": "",
-                "interval": "1m"
+                "interval": "5m"
             }
         }
     },

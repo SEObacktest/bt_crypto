@@ -20,7 +20,7 @@ class ApiManager():
                 start_ms=int(datetime.strptime(start_time,"%Y%m%d").timestamp()*1000)
             else:
                 current_ms=int(datetime.utcnow().timestamp()*1000)
-                start_ms=int((datetime.utcnow()-timedelta(minutes=40)).timestamp()*1000)
+                start_ms=int((datetime.utcnow()-timedelta(minutes=200)).timestamp()*1000)
         if end_time:
                 end_ms=int(datetime.strptime(end_time,"%Y%m%d").timestamp()*1000)
         result=self.client.klines(symbol=symbol,
