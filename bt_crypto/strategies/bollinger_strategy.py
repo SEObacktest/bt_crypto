@@ -1,5 +1,5 @@
 import backtrader as bt
-from strategies.base import BaseStrategy
+from bt_crypto.strategies.base import BaseStrategy
 import datetime
 class Strategy(BaseStrategy):
     params=(

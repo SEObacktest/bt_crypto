@@ -22,13 +22,13 @@ class CerebroController():
         cerebro=self.cerebro_init()
         data=self._get_trading_data()
         cerebro.adddata(data)
-        str_strategy=self.config.CURR_STRATEGY
+        str_strategy=self.bt_config.get_cerebro_config()['curr_strategy']
         strategy=get_strategy(curr_strategy or str_strategy)
         base_strategy_params=self.bt_config.get_basic_setting()
         cerebro.addstrategy(strategy,**base_strategy_params)
         cerebro.run()
     def multiple_strategy_runner(self,multi_strategies:List[str]=None):
-        strategy_list:[str]=multi_strategies or self.config.MUL_STRATEGIES.strip().split(',')
+        strategy_list:[str]=multi_strategies or self.bt_config.get_cerebro_config()['mult_strategies'].strip().split(',')
         base_strategy_params:Dict=self.bt_config.get_basic_setting()
         for strategy in strategy_list:
             strategy_module=get_strategy(strategy)
