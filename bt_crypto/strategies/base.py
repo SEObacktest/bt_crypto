@@ -53,36 +53,37 @@ class BaseStrategy(bt.Strategy):
             print(f'Param Info:{param_str}')
             print(f'Starting Portfolio Value:{self.init_cash:.2f}')
             print(f'Final Protfolio value:{self.broker.get_value():.2f}\n')
-        self.trading_signal=self.gen_trading_signal()
-        self.client.get_certain_position(self.p.pair)
-        print(f'date:{bt.num2date(self.datetime[0]).strftime("%Y-%m-%d %H:%M:%S")}')
-        print(f'Latest price={self.close_price[0]}')
-        if self.trading_signal is None:
-            print('no signal detected')
-        if self.trading_signal == TradingWay.CLOSE:
-            self.client.close_certain_position(self.p.pair)
-        if self.trading_signal==TradingWay.LONG:
-            print(self.close_price[0])
-            print(int(self.open_amount/self.close_price[0]))
-            self.client.place_order(symbol=self.p.pair,
-                             side=Side.BUY,
-                             order_type='MARKET',
-                             quantity=int(self.open_amount/self.close_price[0]))
-        if self.trading_signal==TradingWay.SHORT:
-            self.client.place_order(symbol=self.p.pair,
-                             side=Side.SELL,
-                             order_type='MARKET',
-                             quantity=int(self.open_amount/self.close_price[0]))
-        if self.trading_signal==TradingWay.CLOSE_THEN_SHORT:
-            self.client.close_then_place(symbol=self.p.pair,
-                            side=Side.SELL,
-                            order_type='MARKET',
-                            quantity=int(self.open_amount/self.close_price[0]))
-        if self.trading_signal==TradingWay.CLOSE_THEN_LONG:
-            self.client.close_then_place(symbol=self.p.pair,
-                            side=Side.BUY,
-                            order_type='MARKET',
-                            quantity=int(self.open_amount/self.close_price[0]))
+        else:
+            print(f'date:{bt.num2date(self.datetime[0]).strftime("%Y-%m-%d %H:%M:%S")}')
+            print(f'Latest price={self.close_price[0]}')
+            self.trading_signal=self.gen_trading_signal()
+            self.client.get_certain_position(self.p.pair)
+            if self.trading_signal is None:
+                print('no signal detected')
+            if self.trading_signal == TradingWay.CLOSE:
+                self.client.close_certain_position(self.p.pair)
+            if self.trading_signal==TradingWay.LONG:
+                print(self.close_price[0])
+                print(int(self.open_amount/self.close_price[0]))
+                self.client.place_order(symbol=self.p.pair,
+                                 side=Side.BUY,
+                                 order_type='MARKET',
+                                 quantity=int(self.open_amount/self.close_price[0]))
+            if self.trading_signal==TradingWay.SHORT:
+                self.client.place_order(symbol=self.p.pair,
+                                 side=Side.SELL,
+                                 order_type='MARKET',
+                                 quantity=int(self.open_amount/self.close_price[0]))
+            if self.trading_signal==TradingWay.CLOSE_THEN_SHORT:
+                self.client.close_then_place(symbol=self.p.pair,
+                                side=Side.SELL,
+                                order_type='MARKET',
+                                quantity=int(self.open_amount/self.close_price[0]))
+            if self.trading_signal==TradingWay.CLOSE_THEN_LONG:
+                self.client.close_then_place(symbol=self.p.pair,
+                                side=Side.BUY,
+                                order_type='MARKET',
+                                quantity=int(self.open_amount/self.close_price[0]))
                             
     def notify_order(self,order):
         if self.p.log_hidden:

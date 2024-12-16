@@ -1,5 +1,5 @@
 env
 user.cfg
-__pycache__/
 .idea
 *.swp
+**/__pycache__/

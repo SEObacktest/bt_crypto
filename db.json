@@ -8,6 +8,7 @@
     "cerebro": {
         "init_cash": 10000,
         "curr_strategy": "bollinger",
+	"mult_strategies":"bollinger,macd",
         "commission": 0.0001,
         "position_to_balance": 0.1,
         "leverage": 20,
