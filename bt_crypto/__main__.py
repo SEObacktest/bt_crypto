@@ -14,7 +14,7 @@ def main():
         while True:
             try:
                 start_time=time.time()
-                cerebro_core.single_strategy_runner(curr_strategy='macd')
+                cerebro_core.single_strategy_runner()
                 end_time=time.time()
                 execution_time = end_time - start_time
                 print(f"Execution time: {execution_time:.2f} seconds")

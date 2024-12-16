@@ -1,4 +1,4 @@
-from strategies.base import BaseStrategy
+from bt_crypto.strategies.base import BaseStrategy,TradingWay
 import backtrader as bt
 import datetime
 class Strategy(BaseStrategy):
@@ -30,3 +30,18 @@ class Strategy(BaseStrategy):
         if self.broker.getposition(self.data).size<0:
             if self.high_price[0]>self.DonchianH_exit[-1]:
                 self.close()
+    def gen_trading_signal(self)-> TradingWay:
+            real_position=self.client.get_certain_position(self.p.pair)
+            if real_position is None:
+                return
+            if real_position > 0:
+                if self.close_price[0]<self.DonchianL_exit[-1]:
+                    return TradingWay.CLOSE
+            if real_position <0:
+                if self.close_price[0]>self.DonchianH_exit[-1]:
+                    return TradingWay.CLOSE
+            if real_position==0:
+                if self.close_price[0]>self.DonchianH_entry[-1]:
+                    return TradingWay.CLOSE_THEN_LONG
+                if self.close_price[0]<self.DonchianL_entry[-1]:
+                    return TradingWay.CLOSE_THEN_SHORT
