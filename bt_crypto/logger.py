@@ -1,4 +1,5 @@
 import logging
+import os 
 class Logger:
     def __init__(self):
         self.Logger=logging.getLogger('live_trade_logger')
@@ -15,5 +16,3 @@ class Logger:
     def info(self,message):
         self.log(message,"info")
 
-logger=Logger()
-logger.info('not here')

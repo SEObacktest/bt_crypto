@@ -1,0 +1,4 @@
+
+2024-12-20 14:02:25,884 - live_trade_logger - INFO - 做空信号出现，品种：DOGEUSDT,数量：19
+2024-12-20 14:06:22,487 - live_trade_logger - INFO - 做空信号出现，品种：DOGEUSDT,数量：19
+2024-12-20 14:06:36,719 - live_trade_logger - INFO - 做多信号出现，品种：DOGEUSDT,数量：DOGEUSDT

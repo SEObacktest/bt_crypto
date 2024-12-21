@@ -22,7 +22,7 @@ def main():
                 print(f"An error occurred: {e}")
                 time.sleep(5) 
     else:
-            cerebro_core.multiple_strategy_runner()
+            cerebro_core.single_strategy_runner()
             
     #cerebro_core.multiple_strategy_runner()
     #client=ApiManager(config)

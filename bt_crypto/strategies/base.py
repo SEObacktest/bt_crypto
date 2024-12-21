@@ -1,3 +1,4 @@
+import time
 from enum import Enum
 from typing import Dict 
 import backtrader as bt
@@ -5,6 +6,7 @@ import datetime
 import os
 from bt_crypto.api_manager import ApiManager,Side
 from bt_crypto.config import Config
+from bt_crypto.logger import Logger
 class TradingWay(Enum):
     CLOSE=0,
     LONG=1,
@@ -30,16 +32,16 @@ class BaseStrategy(bt.Strategy):
         self.init_cash=None
         self.trading_signal:Dict=None
         self.open_amount=None
-        self.trading_signal=None
+        self.logger=Logger()
     def log(self,txt,dt=None):
         dt=dt or self.datetime.date(0)
         print(f'{dt.isoformat()}:{txt}')
     def start(self):
+        self.init_cash=self.broker.get_value()
         if(self.p.livetrade):
             print("You are under live trading")
-        balance=self.client.get_balance()
-        self.init_cash=self.broker.get_value()
-        self.open_amount=balance*self.p.position_to_balance
+            balance=self.client.get_balance()
+            self.open_amount=balance*self.p.position_to_balance
     def stop(self):
         skip_attr=['notdefault','isdefault']
         param_info=[]
@@ -56,8 +58,28 @@ class BaseStrategy(bt.Strategy):
         else:
             print(f'date:{bt.num2date(self.datetime[0]).strftime("%Y-%m-%d %H:%M:%S")}')
             print(f'Latest price={self.close_price[0]}')
+            print(bt.num2date(self.datetime[0]).timestamp())
+            #在K线结束前的20%时间确定交易信号
+    #            interval=bt.num2date(self.datetime[0]).timestamp()-bt.num2date(self.datetime[-1]).timestamp()
+    #            order_timestamp=bt.num2date(self.datetime[0]).timestamp()+interval*0.8
+    #            datetime_obj=datetime.datetime.fromtimestamp(order_timestamp)
+    #            now=datetime.datetime.utcnow().timestamp()
+    #            now_obj=datetime.datetime.fromtimestamp(now)
+    #            sleep_time=int(order_timestamp-now)
+    #            if sleep_time<0:
+    #                new_sleep_time=bt.num2date(self.datetime[0]).timestamp()+interval
+    #                print(f'start to sleep for next bar:{new_sleep_time}')
+    #                time.sleep(new_sleep_time-now)
+    #                new_now=datetime.datetime.utcnow()
+    #                new_now_str = new_now.strftime("%Y-%m-%d %H:%M:%S")
+    #                print(new_now)
+    #                print(f'sleep finished')
+    #            print('start to sleep')
+    #            time.sleep(sleep_time)
+    #            print('sleep finished!')
             self.trading_signal=self.gen_trading_signal()
             self.client.get_certain_position(self.p.pair)
+            open_quantity=int(self.open_amount/self.close_price[0])
             if self.trading_signal is None:
                 print('no signal detected')
             if self.trading_signal == TradingWay.CLOSE:
@@ -65,45 +87,54 @@ class BaseStrategy(bt.Strategy):
             if self.trading_signal==TradingWay.LONG:
                 print(self.close_price[0])
                 print(int(self.open_amount/self.close_price[0]))
-                self.client.place_order(symbol=self.p.pair,
-                                 side=Side.BUY,
-                                 order_type='MARKET',
-                                 quantity=int(self.open_amount/self.close_price[0]))
+                result=self.client.place_order(symbol=self.p.pair,
+                                    side=Side.BUY,
+                                    order_type='MARKET',
+                                    price=self.close_price[0])
+                if result is not None:
+                    self.logger.info(f'做多信号出现，品种：{self.p.pair},数量：{open_quantity}')
             if self.trading_signal==TradingWay.SHORT:
-                self.client.place_order(symbol=self.p.pair,
-                                 side=Side.SELL,
-                                 order_type='MARKET',
-                                 quantity=int(self.open_amount/self.close_price[0]))
+                self.logger.info(f'做空信号出现，品种：{self.p.pair},数量：{open_quantity}')
+                result=self.client.place_order(symbol=self.p.pair,
+                                    side=Side.SELL,
+                                    order_type='MARKET',
+                                    quantity=int(self.open_amount/self.close_price[0]))
             if self.trading_signal==TradingWay.CLOSE_THEN_SHORT:
-                self.client.close_then_place(symbol=self.p.pair,
+                result=self.client.close_then_place(symbol=self.p.pair,
                                 side=Side.SELL,
                                 order_type='MARKET',
                                 quantity=int(self.open_amount/self.close_price[0]))
+                if result is not None:
+                    direction='多' if result.get("origQty")>0 else "空"
+                    self.logger.info(f'反转信号出现：平多并做空，品种：{self.p.pair},数量：{abs(result.get("origQty"))},方向:{direction},')
             if self.trading_signal==TradingWay.CLOSE_THEN_LONG:
-                self.client.close_then_place(symbol=self.p.pair,
+                result=self.client.close_then_place(symbol=self.p.pair,
                                 side=Side.BUY,
                                 order_type='MARKET',
                                 quantity=int(self.open_amount/self.close_price[0]))
+                if result is not None:
+                    direction='多' if result.get("origQty")>0 else "空"
+                    self.logger.info(f'反转信号出现：平空并做多，品种：{self.p.pair},数量：{abs(result.get("origQty"))},方向:{direction},')
                             
     def notify_order(self,order):
         if self.p.log_hidden:
             return
         if order.status is order.Submitted:
-           #self.log('Order Submitted')
-           pass
+            #self.log('Order Submitted')
+            pass
         if order.status is order.Accepted:
-           # self.log('Order Accepted')
-           pass
+            # self.log('Order Accepted')
+            pass
         if order.status is order.Completed:
             if order.isbuy():
                 self.log(f'Buy executed:{order.executed.price:.2f} Cost:{order.executed.value:.2f}'
-                         f' Commision:{order.executed.comm:.2f} Size:{order.executed.size}')
+                            f' Commision:{order.executed.comm:.2f} Size:{order.executed.size}')
             if order.issell():
                     self.log(f'Sell executed:{order.executed.price:.2f} Cost:{order.executed.value:.2f}'
-                             f' Commision:{order.executed.comm:.2f} Size:{order.executed.size}')
+                                f' Commision:{order.executed.comm:.2f} Size:{order.executed.size}')
             self.log(f'Total balance:{self.broker.get_value()}')
             self.order=None
         elif order.status in [order.Canceled,order.Margin,order.Rejected]:
             self.log(f'Order rejected')
-def gen_trading_signal(self)-> TradingSignal:
-    pass
+    def gen_trading_signal(self)-> TradingSignal:
+        pass

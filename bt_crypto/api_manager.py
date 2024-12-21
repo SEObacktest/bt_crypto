@@ -20,8 +20,18 @@ class ApiManager():
                 start_ms=int(datetime.strptime(start_time,"%Y%m%d").timestamp()*1000)
             else:
                 current_ms=int(datetime.utcnow().timestamp()*1000)
-                start_ms=int((datetime.utcnow()-timedelta(minutes=200)).timestamp()*1000)
+                time_multiplier=1
+                if self.bt_config.get_pair_config(symbol)['interval']=='5m':
+                    time_multiplier=5
+                if self.bt_config.get_pair_config(symbol)['interval']=='1d':
+                    time_multiplier=720
+                if self.bt_config.get_pair_config(symbol)['interval']=='1h':
+                    time_multiplier=60
+                if self.bt_config.get_pair_config(symbol)['interval']=='4h':
+                    time_multiplier=240
+                start_ms=int((datetime.utcnow()-timedelta(minutes=40*time_multiplier)).timestamp()*1000)
         if end_time:
+            if not self.bt_config.get_basic_setting()['livetrade']:
                 end_ms=int(datetime.strptime(end_time,"%Y%m%d").timestamp()*1000)
         result=self.client.klines(symbol=symbol,
         interval=interval,
@@ -49,6 +59,7 @@ class ApiManager():
             order_params['price']=price
         response=self.client.new_order(**order_params)
         print(response)
+        return response
     def close_all_positions(self):
         positions_amount={}
         all_open_positions:List[Dict]=self.get_open_positions()
@@ -66,18 +77,19 @@ class ApiManager():
         position=self.get_certain_position(symbol)
         if position is None:
             print('No position close, put order directly')
-            self.place_order(symbol=symbol,side=side,order_type='MARKET',quantity=quantity)
+            result=self.place_order(symbol=symbol,side=side,order_type='MARKET',quantity=quantity)
         else:
             if position > 0 and side==Side.BUY:
                 print('you have already hold long position')
                 return
             if position>0 and side==Side.SELL:
-                self.place_order(symbol=symbol,side=side,order_type='MARKET',quantity=position+quantity)
+                result=self.place_order(symbol=symbol,side=side,order_type='MARKET',quantity=position+quantity)
             if position < 0 and side==Side.SELL:
                 print('You have already hold short position')
                 return 
             if position <0 and side==Side.BUY:
-                self.place_order(symbol=symbol,side=side,order_type='MARKET',quantity=abs(position)+quantity)
+                result=self.place_order(symbol=symbol,side=side,order_type='MARKET',quantity=abs(position)+quantity)
+        return result
     def get_open_positions(self)->List[Dict]:
         account_info=self.client.account()
         #print(account_info['positions'])
