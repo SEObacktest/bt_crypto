@@ -105,16 +105,16 @@ class BaseStrategy(bt.Strategy):
                                 order_type='MARKET',
                                 quantity=int(self.open_amount/self.close_price[0]))
                 if result is not None:
-                    direction='多' if result.get("origQty")>0 else "空"
-                    self.logger.info(f'反转信号出现：平多并做空，品种：{self.p.pair},数量：{abs(result.get("origQty"))},方向:{direction},')
+                    direction='多' if float(result.get("origQty"))>0 else "空"
+                    self.logger.info(f'反转信号出现：平多并做空，品种：{self.p.pair},数量：{abs(float(result.get("origQty")))},方向:{direction}')
             if self.trading_signal==TradingWay.CLOSE_THEN_LONG:
                 result=self.client.close_then_place(symbol=self.p.pair,
                                 side=Side.BUY,
                                 order_type='MARKET',
                                 quantity=int(self.open_amount/self.close_price[0]))
                 if result is not None:
-                    direction='多' if result.get("origQty")>0 else "空"
-                    self.logger.info(f'反转信号出现：平空并做多，品种：{self.p.pair},数量：{abs(result.get("origQty"))},方向:{direction},')
+                    direction='多' if float(result.get("origQty"))>0 else "空"
+                    self.logger.info(f'反转信号出现：平空并做多，品种：{self.p.pair},数量：{abs(float(result.get("origQty")))},方向:{direction}')
                             
     def notify_order(self,order):
         if self.p.log_hidden:

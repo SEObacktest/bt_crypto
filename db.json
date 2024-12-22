@@ -27,8 +27,8 @@
                 "interval": "1d"
             },
             "DOGEUSDT": {
-                "start_time": "20241108",
-                "end_time": "",
+                "start_time": "20201108",
+                "end_time": "20240101",
                 "interval": "1m"
             }
         }

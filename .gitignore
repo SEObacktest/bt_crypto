@@ -3,3 +3,4 @@ user.cfg
 .idea
 *.swp
 **/__pycache__/
+**/*.log

@@ -24,7 +24,7 @@ class ApiManager():
                 if self.bt_config.get_pair_config(symbol)['interval']=='5m':
                     time_multiplier=5
                 if self.bt_config.get_pair_config(symbol)['interval']=='1d':
-                    time_multiplier=720
+                    time_multiplier=1440
                 if self.bt_config.get_pair_config(symbol)['interval']=='1h':
                     time_multiplier=60
                 if self.bt_config.get_pair_config(symbol)['interval']=='4h':
