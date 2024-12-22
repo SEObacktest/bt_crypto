@@ -1,5 +1,6 @@
 import time
 from .cerebro_controller import CerebroController
+from .stream_manager import StreamManager
 from .api_manager import ApiManager,Side
 from .config import Config
 from .utils import load_configs
@@ -29,6 +30,8 @@ def main():
     #cerebro_core.multiple_strategy_runner()
     #client=ApiManager(config)
     #client.place_order('DOGEUSDT',Side.BUY,order_type='MARKET',quantity=12)
-main()
-    
+#main()
+config=Config()
+sm=StreamManager(config)
+sm.get_price()  
 
