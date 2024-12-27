@@ -111,7 +111,14 @@ class ApiManager():
         return balance
     def get_amount_to_balance(self,symbol:str,percent:float)->float:
         pass
-    def order_monitor(self):
+    def cancel_order(self,symbol:str):
+        #This is the function cancelling order for specific symbol
+        response=self.client.cancel_open_orders(symbol)
+        return response
+    def get_current_order(self,symbol:str=None):
+        response=self.client.get_orders() 
+        print(response)
+    def order_chaser(self):
         pass
 config=Config()
 api_manager=ApiManager(config)

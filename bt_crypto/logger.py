@@ -1,12 +1,12 @@
 import logging
 import os 
 class Logger:
-    def __init__(self):
-        self.Logger=logging.getLogger('live_trade_logger')
+    def __init__(self,logging_name:str="live_trade"):
+        self.Logger=logging.getLogger(f'{logging_name}_logger')
         self.Logger.setLevel(logging.DEBUG)
         if not self.Logger.handlers:
             formatter=logging.Formatter("%(asctime)s - %(name)s - %(levelname)s - %(message)s")
-            fh=logging.FileHandler('logs/live_trade.log')
+            fh=logging.FileHandler(f'logs/{logging_name}.log')
             fh.setLevel(logging.DEBUG)
             fh.setFormatter(formatter)
             self.Logger.addHandler(fh)

@@ -32,6 +32,9 @@ def main():
     #client.place_order('DOGEUSDT',Side.BUY,order_type='MARKET',quantity=12)
 #main()
 config=Config()
-sm=StreamManager(config)
-sm.get_price()  
+api_manager=ApiManager(config)
+api_manager.get_current_order()
+#api_manager.place_order('DOGEUSDT',Side.BUY,'LIMIT',18,0.3,timeInForce='GTC')
+#api_manager.cancel_order('DOGEUSDT')
+#sm.get_price()  
 
