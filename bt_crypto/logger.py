@@ -16,8 +16,12 @@ class Logger:
             self.Logger.info(message)
         elif level=="error":
             self.Logger.error(message)
+        elif level=="warning":
+            self.Logger.warning(message)
     def info(self,message):
         self.log(message,"info")
     def error(self,message):
         self.log(message,"error")
+    def warning(self,message):
+        self.log(message,"warning")
 

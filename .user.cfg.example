@@ -1,6 +1,6 @@
 [sub_account]
-API_KEY=MTXEJs8Qr2vGGS80cFPcQv3wGMp1lS34icsvAv6ViPVrh9uB8A33n8v1Oc59McKL
-SECRET_KEY=/home/litterpigger/.binance/Private_key
+API_KEY=oQFWjFVOQmMfAFGWf8f1bs5sYtJRKeZIMq4Jht2v8C0P5jeIWXN2zs62NW6m0c01
+SECRET_KEY=/home/litterpigger/.binance/Private_key.txt
 
 [cerebro]
 opt_param=0

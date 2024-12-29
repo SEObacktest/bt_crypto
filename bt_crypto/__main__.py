@@ -5,12 +5,14 @@ from .api_manager import ApiManager,Side
 from .config import Config
 from .utils import load_configs
 from .logger import Logger
+from .db import DataBase
 def main():
-    config=Config()
-    logger=Logger()
     bt_config=load_configs()
-    cerebro_core=CerebroController()
     live_trade=bt_config.get_basic_setting()['livetrade']
+    trading_logger=Logger('database')
+    db=DataBase(logger=trading_logger)
+    db.create_database()
+    cerebro_core=CerebroController()
     cerebro_core.cerebro_init()
     if live_trade:
         #cerebro_core.all_strategy_runner()
@@ -30,10 +32,10 @@ def main():
     #cerebro_core.multiple_strategy_runner()
     #client=ApiManager(config)
     #client.place_order('DOGEUSDT',Side.BUY,order_type='MARKET',quantity=12)
-#main()
-config=Config()
-api_manager=ApiManager(config)
-api_manager.get_current_order()
+main()
+#config=Config()
+#api_manager=ApiManager(config)
+#api_manager.get_current_order()
 #api_manager.place_order('DOGEUSDT',Side.BUY,'LIMIT',18,0.3,timeInForce='GTC')
 #api_manager.cancel_order('DOGEUSDT')
 #sm.get_price()  

@@ -7,6 +7,7 @@ import os
 from bt_crypto.api_manager import ApiManager,Side
 from bt_crypto.config import Config
 from bt_crypto.logger import Logger
+from bt_crypto.db import DataBase
 class TradingWay(Enum):
     CLOSE=0,
     LONG=1,
@@ -32,7 +33,10 @@ class BaseStrategy(bt.Strategy):
         self.init_cash=None
         self.trading_signal:Dict=None
         self.open_amount=None
-        self.logger=Logger()
+        self.trade_logger=Logger(f'live_trading:{self.__module__}')
+        self.db_logger=Logger('database')
+        self.bt_logger=Logger('backtest')
+        self.db=DataBase(self.db_logger)
     def log(self,txt,dt=None):
         dt=dt or self.datetime.date(0)
         print(f'{dt.isoformat()}:{txt}')
@@ -78,6 +82,7 @@ class BaseStrategy(bt.Strategy):
     #            time.sleep(sleep_time)
     #            print('sleep finished!')
             self.trading_signal=self.gen_trading_signal()
+            self.trading_signal=TradingWay.CLOSE
             self.client.get_certain_position(self.p.pair)
             open_quantity=int(self.open_amount/self.close_price[0])
             if self.trading_signal is None:

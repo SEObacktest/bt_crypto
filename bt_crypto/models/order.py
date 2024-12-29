@@ -29,3 +29,7 @@ class Order(Base):
         self.place_time=place_time
     def info(self):
         print(self.order_id)
+    def get_id(self):
+        return self.order_id
+    def get_symbol(self):
+        return self.order_coin_id
