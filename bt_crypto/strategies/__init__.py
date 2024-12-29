@@ -1,7 +1,7 @@
 import os
 import importlib
 import sys
-def get_strategy(name):
+def get_strategy(name,**kwarg):
     for dirpath,_,filenames in os.walk(os.path.dirname(__file__)):
         for filename in filenames:
             if filename.endswith("_strategy.py"):

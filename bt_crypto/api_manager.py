@@ -1,4 +1,7 @@
+from .db import DataBase
+from .logger import Logger
 from typing import List,Dict,Optional
+from binance.websocket.um_futures.websocket_client import UMFuturesWebsocketClient
 from binance.um_futures import UMFutures
 import pandas as pd
 from .config import Config
@@ -8,11 +11,12 @@ from .utils import load_configs
 class Side(Enum):
     BUY:str='BUY'
     SELL:str='SELL'
-
 class ApiManager():
-    def __init__(self,config:Config):
+    def __init__(self,config:Config,db:DataBase):
         self.client=UMFutures(key=config.API_KEY,private_key=config.API_SECRET)
         self.bt_config=load_configs()
+        self.logger=Logger('api')
+        self.db=db
     def get_kline(self,symbol:str,interval:str,start_time:str=None,end_time:str=None)->pd.DataFrame:	
         end_ms=None
         if start_time:
@@ -58,6 +62,12 @@ class ApiManager():
                 raise ValueError('Price should be a valid value')
             order_params['price']=price
         response=self.client.new_order(**order_params)
+        db.add_order(
+            order_id=response['orderId'],
+            symbol=response['symbol'],
+            amount=response['origQty'],order_state='FILLED' if order_type=='MARKET' else response['status'],
+            place_time=response['updateTime'] 
+            )
         print(response)
         return response
     def close_all_positions(self):
@@ -108,11 +118,32 @@ class ApiManager():
     def get_balance(self)->float:
         balance=float(self.client.account()['totalWalletBalance'])
         return balance
-    def get_amount_to_balance(self,symbol:str,percent:float)->float:
-        pass
-config=Config()
-api_manager=ApiManager(config)
-api_manager.get_kline('BTCUSDT','1d')
-#api_manager.place_order('DOGEUSDT',Side.BUY,'MARKET',12)
-#api_manager.get_open_positions()
-#api_manager.close_all_positions()
+    def cancel_order(self,symbol:str):
+        #This is the function cancelling order for specific symbol
+        response=self.client.cancel_open_orders(symbol)
+        return response
+    def get_current_order(self,db:DataBase,symbol:str=None):
+        response=self.client.get_orders() 
+        print(response)
+    def get_order(self,orderId:int,symbol:str):
+        result=self.client.query_order(symbol,orderId)
+        return result
+    def order_chaser(self):
+        try:
+            orders = self.db.get_live_orders()
+            for order in orders:
+                result=self.get_order(order['symbol'],order['order_id'])
+            return orders
+        except Exception as e:
+            self.logger.error(f"获取订单时发生错误: {str(e)}")
+            return []
+if __name__=='__main__':
+    print('hi')
+    config=Config()
+    logger=Logger('database')
+    db=DataBase(logger)
+    client=ApiManager(config,db)
+    #client.place_order('DOGEUSDT',Side.SELL,'LIMIT',17,1,timeinforce='GTC')
+    #result=client.get_order(61675559014,'DOGEUSDT')
+    result=client.order_chaser()
+    print(result)

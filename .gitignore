@@ -4,3 +4,4 @@ user.cfg
 *.swp
 **/__pycache__/
 **/*.log
+**/*.db
