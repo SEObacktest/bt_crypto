@@ -8,10 +8,10 @@ from .utils import load_configs
 from .db import DataBase
 from .logger import Logger
 class CerebroController():
-    def __init__(self):
+    def __init__(self,db):
         self.config=Config()
         self.cerebro=bt.Cerebro()
-        self.client=ApiManager(self.config)
+        self.client=ApiManager(self.config,db)
         self.bt_config=load_configs()
     def cerebro_init(self)->bt.Cerebro:
         cerebro=bt.Cerebro()

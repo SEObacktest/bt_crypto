@@ -12,7 +12,7 @@ def main():
     trading_logger=Logger('database')
     db=DataBase(logger=trading_logger)
     db.create_database()
-    cerebro_core=CerebroController()
+    cerebro_core=CerebroController(db)
     cerebro_core.cerebro_init()
     if live_trade:
         #cerebro_core.all_strategy_runner()
