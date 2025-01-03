@@ -24,7 +24,6 @@ class BaseStrategy(bt.Strategy):
     )
     def __init__(self):
         config=Config()
-        self.client=ApiManager(config)
         self.volume=self.data.volume
         self.close_price=self.data.close
         self.open_price=self.data.open
@@ -37,6 +36,7 @@ class BaseStrategy(bt.Strategy):
         self.db_logger=Logger('database')
         self.bt_logger=Logger('backtest')
         self.db=DataBase(self.db_logger)
+        self.client=ApiManager(config,self.db)
     def log(self,txt,dt=None):
         dt=dt or self.datetime.date(0)
         print(f'{dt.isoformat()}:{txt}')
@@ -81,8 +81,10 @@ class BaseStrategy(bt.Strategy):
     #            print('start to sleep')
     #            time.sleep(sleep_time)
     #            print('sleep finished!')
+            all_position=self.client.get_open_positions()
+            hold_postion = False
             self.trading_signal=self.gen_trading_signal()
-            self.trading_signal=TradingWay.CLOSE
+            self.client.order_chaser()
             self.client.get_certain_position(self.p.pair)
             open_quantity=int(self.open_amount/self.close_price[0])
             if self.trading_signal is None:

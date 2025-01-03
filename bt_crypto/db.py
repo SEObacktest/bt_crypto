@@ -1,3 +1,4 @@
+from typing import List,Dict
 from .models import Coin,Order,Base,OrderState
 from typing import List,Optional
 from sqlalchemy.orm import DeclarativeBase,Mapped,mapped_column,relationship,sessionmaker,Session
@@ -27,13 +28,14 @@ class DataBase:
                 session.add(coin)
             else:
                 self.logger.warning('Coin has already been in db')
-    def add_order(self,order_id:int,symbol:str,amount:float,order_state:str,place_time:int):
+    def add_order(self,order_id:int,symbol:str,amount:float,order_state:str,place_time:int,side:str):
         with self.db_session() as session:
             new_order = Order(order_id=order_id,
                               order_coin_id=symbol,
                               amount=amount,
                               place_time=place_time,
-                              order_state=order_state
+                              order_state=order_state,
+                              side=side
                               )
             session.add(new_order)
             self.logger.info(f'New order added to database,order_id={order_id}')
@@ -53,15 +55,15 @@ class DataBase:
                     if hasattr(order,key):
                         setattr(order,key,value)
             self.logger.info(f'order {order_id} updated')
-    def del_db(self):
+    def del_db(self)->List[Dict]:
         Base.metadata.drop_all(self.engine)
+        print('Database has already been removed')
     def get_live_orders(self):
         with self.db_session() as session:
             orders=session.query(Order).filter(or_(Order.order_state=='NEW',
                                                    Order.order_state== 'PARTIALLY_FILLED'))
             
             result=[{'symbol':order.order_coin_id,'orderId':order.order_id} for order in orders]
-            print(result)
             return result
 if __name__=="__main__":
     logger=Logger('database')

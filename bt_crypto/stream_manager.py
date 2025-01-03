@@ -18,4 +18,11 @@ class StreamManager:
             id=1,
         )
     def get_price(self,symbol=None):
-        self.ws_client.kline(symbol='btcusdt',id=12,interval='1h')
+        result=self.ws_client.kline(symbol='btcusdt',id=12,interval='1h')
+    def get_bid_price(self,symbol=None):
+        pass
+
+if __name__ == '__main__':
+    pass
+
+

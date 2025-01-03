@@ -13,6 +13,9 @@ class OrderState(enum.Enum):
 class Direction(enum.Enum):
     LONG="LONG"
     SHORT="SHORT"
+class Side(enum.Enum):
+    BUY="BUY"
+    SELL="SELL"
 class Order(Base):
     __tablename__="order"
     order_id=Column(Integer,primary_key=True,unique=True)
@@ -21,12 +24,14 @@ class Order(Base):
     amount=Column(Float,nullable=False)
     order_state=Column(Enum(OrderState))
     place_time=Column(BigInteger)
-    def __init__(self,order_id:int,order_coin_id:str,amount:float,order_state:OrderState,place_time:int):
+    side=Column(Enum(Side))
+    def __init__(self,order_id:int,order_coin_id:str,amount:float,order_state:OrderState,place_time:int,side:str):
         self.order_id=order_id
         self.order_coin_id=order_coin_id
         self.amount=amount
         self.order_state=order_state
         self.place_time=place_time
+        self.side=side 
     def info(self):
         print(self.order_id)
     def get_id(self):
