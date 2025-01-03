@@ -83,11 +83,8 @@ class BaseStrategy(bt.Strategy):
     #            print('sleep finished!')
             all_position=self.client.get_open_positions()
             hold_postion = False
-            for position in all_position:
-                if position['symbol']==self.p.trading_pair:
-                   pass 
             self.trading_signal=self.gen_trading_signal()
-            self.trading_signal=Tradingway.Close
+            self.client.order_chaser()
             self.client.get_certain_position(self.p.pair)
             open_quantity=int(self.open_amount/self.close_price[0])
             if self.trading_signal is None:

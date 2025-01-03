@@ -127,6 +127,11 @@ class ApiManager():
     def cancel_order(self,symbol:str):
         #This is the function cancelling order for specific symbol
         response=self.client.cancel_open_orders(symbol)
+        if response is not None:
+            for order in self.db.get_live_orders():
+                orderId=order['orderId']
+                self.db.update_order(order_id=orderId,order_state='CANCELED')
+            self.logger.info('Live orders canceled')
         return response
     def cancel_order_id(self,symbol:str,orderId):
         result=self.client.cancel_order(
@@ -163,13 +168,17 @@ class ApiManager():
             Get live order from database and ensure they are still unfilled by fetching latest status from biancne server
             Then executed them in certain period
             """ 
+            self.order_checker()
             orders = self.db.get_live_orders()
             results=[self.get_order(order['orderId'],order['symbol']) for order in orders]
+            if not results:
+                print('No live order detected')
+                return
             sample_result=results[0]
             order_status=sample_result['status']
             if order_status not in['NEW','PARTIALLY_FILLED']:
                 print('Orders have been fully executed or canceled')
-                pass
+                return
             order_time=sample_result['time']
             order_time_sec=int(sample_result['time']/1000)
             timestamp_now=int(datetime.now().timestamp())
@@ -177,16 +186,29 @@ class ApiManager():
             left_time=limit_time-timestamp_now
             bid_price=float(self.get_bid_price(sample_result['symbol']))
             ask_price=float(self.get_bid_price(sample_result['symbol']))
+            lag_1=order_time_sec+int(executed_time/2)
+            lag_2=order_time_sec+int(executed_time/8*7)
+#            dt_1=datetime.fromtimestamp(lag_1)
+#            dt_2=datetime.fromtimestamp(lag_2)
+#            print(dt_1)
+#            print(dt_2)
+#            return
             if left_time<=0:
                 print('This order is out of executed_time,cancel operation executed')
-                pass
-            if timestamp_now<=order_time_sec+int(executed_time/2):
+                self.canel_order_id(sample_result['orderId'])
+                return
+            if timestamp_now<=lag_1:
                 print('Just wait placed order to be executed')
-            elif timestamp_now > order_time_sec+int(executed_time/2) and timestamp_now<=order_time_sec+int(executed_time/8*7):
+            elif timestamp_now > lag_1 and timestamp_now<=lag_2:
+                print('now modify order to bid price')
                 result=self.modify_order(symbol=sample_result['symbol'],side=sample_result['side'],orderId=sample_result['orderId'],price=bid_price,quantity=float(sample_result['origQty'])-float(sample_result['executedQty']))
             else: 
-                result=self.modify_order(symbol=sample_result['symbol'],side=sample_result['side'],orderId=sample_result['orderId'],price=ask_price,quantity=float(sample_result['origQty'])-float(sample_result['executedQty']))
-            
+                print('now modify order to ask price')
+                result=self.modify_order(
+                    symbol=sample_result['symbol'],
+                    side=sample_result['side'],
+                    orderId=sample_result['orderId'],
+                    price=ask_price,quantity=float(sample_result['origQty'])-float(sample_result['executedQty']))
         except Exception as e:
             self.logger.error(f"获取订单时发生错误: {str(e)}")
             return []
@@ -195,11 +217,11 @@ if __name__=='__main__':
     logger=Logger('database')
     db=DataBase(logger)
     client=ApiManager(config,db)
-    client.close_certain_position('DOGEUSDT')
-    #result=client.cancel_order_id(symbol='DOGEUSDT',orderId=61887604766) 
+    client.order_chaser(120)
+    #client.close_certain_position('DOGEUSDT')
     #client.place_order(symbol='DOGEUSDT',side=Side.SELL,order_type='LIMIT',
     #                   quantity=18,price =1,timeInForce='GTC')
-    #client.order_checker()
+    #print(client.order_checker())
     #client.modify_order(symbol='DOGEUSDT',side='SELL',orderId=61791031510,price=0.9,quantity=17)
     #db.del_db()
     #client.cancel_order('DOGEUSDT')

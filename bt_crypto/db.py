@@ -1,3 +1,4 @@
+from typing import List,Dict
 from .models import Coin,Order,Base,OrderState
 from typing import List,Optional
 from sqlalchemy.orm import DeclarativeBase,Mapped,mapped_column,relationship,sessionmaker,Session
@@ -54,7 +55,7 @@ class DataBase:
                     if hasattr(order,key):
                         setattr(order,key,value)
             self.logger.info(f'order {order_id} updated')
-    def del_db(self):
+    def del_db(self)->List[Dict]:
         Base.metadata.drop_all(self.engine)
         print('Database has already been removed')
     def get_live_orders(self):
