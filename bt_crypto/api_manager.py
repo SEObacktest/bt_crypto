@@ -19,6 +19,7 @@ class ApiManager():
         self.logger=Logger('api')
         self.db=db
     def get_kline(self,symbol:str,interval:str,start_time:str=None,end_time:str=None)->pd.DataFrame:	
+        start_ms=None
         end_ms=None
         if start_time:
             if not self.bt_config.get_basic_setting()['livetrade']:
@@ -63,14 +64,13 @@ class ApiManager():
                 raise ValueError('Price should be a valid value')
             order_params['price']=price
         response=self.client.new_order(**order_params)
-        db.add_order(
+        self.db.add_order(
             order_id=response['orderId'],
             symbol=response['symbol'],
             amount=response['origQty'],
             order_state='FILLED' if order_type=='MARKET' else response['status'],
             place_time=response['updateTime'],
             side=response['side']
-
             )
         print(response)
         return response
@@ -86,23 +86,39 @@ class ApiManager():
             print('you dont have any position')
             return
         amount=float(self.get_certain_position(symbol))
-        self.place_order(symbol=symbol,side=Side.BUY  if amount<0 else Side.SELL,order_type='MARKET',quantity=abs(amount),reduceOnly='true')
-    def close_then_place(self,symbol:str,side:Side,order_type:str,quantity:float,price:float=None)->str:
+        bid_price=self.get_bid_price(symbol)
+        ask_price=self.get_bid_price(symbol,direction='asks')
+        result={}
+        while not result:
+            result=self.place_order(
+                    symbol=symbol,
+                    side=Side.BUY  if amount<0 else Side.SELL,
+                    order_type='Limit',
+                    quantity=abs(amount),
+                    reduceOnly='true',
+                    timeInForce='GTC',
+                    price=bid_price if amount<0 else ask_price)
+    def close_then_place(self,symbol:str,side:Side,order_type:str,quantity:float,price:float=None,**kwargs)->str:
+        live_orders= self.db.get_live_orders()
+        if live_orders:
+            print('you have open orders, return')
+            return
         position=self.get_certain_position(symbol)
+        result={}
         if position is None:
             print('No position close, put order directly')
-            result=self.place_order(symbol=symbol,side=side,order_type='MARKET',quantity=quantity)
+            result=self.place_order(symbol=symbol,side=side,order_type=order_type,quantity=quantity,price=price,**kwargs)
         else:
             if position > 0 and side==Side.BUY:
                 print('you have already hold long position')
                 return
             if position>0 and side==Side.SELL:
-                result=self.place_order(symbol=symbol,side=side,order_type='MARKET',quantity=position+quantity)
+                result=self.place_order(symbol=symbol,side=side,order_type=order_type,quantity=quantity+position,price=price,**kwargs)
             if position < 0 and side==Side.SELL:
                 print('You have already hold short position')
                 return 
             if position <0 and side==Side.BUY:
-                result=self.place_order(symbol=symbol,side=side,order_type='MARKET',quantity=abs(position)+quantity)
+                result=self.place_order(symbol=symbol,side=side,order_type=order_type,quantity=quantity+abs(position),price=price,**kwargs)
         return result
     def get_open_positions(self)->List[Dict]:
         account_info=self.client.account()
@@ -161,8 +177,7 @@ class ApiManager():
         for result in results:
             if result['status'] not in ['NEW','PARTIALLY_FILLED']:
                 self.db.update_order(order_id=result['orderId'],order_state=result['status'])
-        
-    def order_chaser(self,executed_time:int=0,event=None):
+    def order_chaser(self,symbol=str,executed_time:int=0,event=None):
         try:
             """
             Get live order from database and ensure they are still unfilled by fetching latest status from biancne server
@@ -185,7 +200,7 @@ class ApiManager():
             limit_time=order_time_sec+executed_time
             left_time=limit_time-timestamp_now
             bid_price=float(self.get_bid_price(sample_result['symbol']))
-            ask_price=float(self.get_bid_price(sample_result['symbol']))
+            ask_price=float(self.get_bid_price(sample_result['symbol'],5,'asks'))
             lag_1=order_time_sec+int(executed_time/2)
             lag_2=order_time_sec+int(executed_time/8*7)
 #            dt_1=datetime.fromtimestamp(lag_1)
@@ -195,7 +210,7 @@ class ApiManager():
 #            return
             if left_time<=0:
                 print('This order is out of executed_time,cancel operation executed')
-                self.canel_order_id(sample_result['orderId'])
+                self.cancel_order_id(symbol,sample_result['orderId'])
                 return
             if timestamp_now<=lag_1:
                 print('Just wait placed order to be executed')
@@ -217,7 +232,7 @@ if __name__=='__main__':
     logger=Logger('database')
     db=DataBase(logger)
     client=ApiManager(config,db)
-    client.order_chaser(120)
+    client.order_chaser(4000)
     #client.close_certain_position('DOGEUSDT')
     #client.place_order(symbol='DOGEUSDT',side=Side.SELL,order_type='LIMIT',
     #                   quantity=18,price =1,timeInForce='GTC')

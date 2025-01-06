@@ -10,6 +10,7 @@ def main():
     bt_config=load_configs()
     live_trade=bt_config.get_basic_setting()['livetrade']
     trading_logger=Logger('database')
+    logger=Logger('live_trade')
     db=DataBase(logger=trading_logger)
     db.create_database()
     cerebro_core=CerebroController(db)

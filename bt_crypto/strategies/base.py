@@ -62,30 +62,12 @@ class BaseStrategy(bt.Strategy):
         else:
             print(f'date:{bt.num2date(self.datetime[0]).strftime("%Y-%m-%d %H:%M:%S")}')
             print(f'Latest price={self.close_price[0]}')
-            print(bt.num2date(self.datetime[0]).timestamp())
-            #在K线结束前的20%时间确定交易信号
-    #            interval=bt.num2date(self.datetime[0]).timestamp()-bt.num2date(self.datetime[-1]).timestamp()
-    #            order_timestamp=bt.num2date(self.datetime[0]).timestamp()+interval*0.8
-    #            datetime_obj=datetime.datetime.fromtimestamp(order_timestamp)
-    #            now=datetime.datetime.utcnow().timestamp()
-    #            now_obj=datetime.datetime.fromtimestamp(now)
-    #            sleep_time=int(order_timestamp-now)
-    #            if sleep_time<0:
-    #                new_sleep_time=bt.num2date(self.datetime[0]).timestamp()+interval
-    #                print(f'start to sleep for next bar:{new_sleep_time}')
-    #                time.sleep(new_sleep_time-now)
-    #                new_now=datetime.datetime.utcnow()
-    #                new_now_str = new_now.strftime("%Y-%m-%d %H:%M:%S")
-    #                print(new_now)
-    #                print(f'sleep finished')
-    #            print('start to sleep')
-    #            time.sleep(sleep_time)
-    #            print('sleep finished!')
-            all_position=self.client.get_open_positions()
-            hold_postion = False
+            hold_position = self.client.get_certain_position(self.p.pair)
             self.trading_signal=self.gen_trading_signal()
-            self.client.order_chaser()
-            self.client.get_certain_position(self.p.pair)
+            self.trading_signal=TradingWay.CLOSE
+            self.client.order_chaser(self.p.pair,300)
+            fs_bid_price=self.client.get_bid_price(symbol=self.p.pair)
+            fs_ask_price=self.client.get_bid_price(symbol=self.p.pair,direction='asks')
             open_quantity=int(self.open_amount/self.close_price[0])
             if self.trading_signal is None:
                 print('no signal detected')
@@ -99,9 +81,9 @@ class BaseStrategy(bt.Strategy):
                                     order_type='MARKET',
                                     price=self.close_price[0])
                 if result is not None:
-                    self.logger.info(f'做多信号出现，品种：{self.p.pair},数量：{open_quantity}')
+                    self.trade_logger.info(f'做多信号出现，品种：{self.p.pair},数量：{open_quantity}')
             if self.trading_signal==TradingWay.SHORT:
-                self.logger.info(f'做空信号出现，品种：{self.p.pair},数量：{open_quantity}')
+                self.trade_logger.info(f'做空信号出现，品种：{self.p.pair},数量：{open_quantity}')
                 result=self.client.place_order(symbol=self.p.pair,
                                     side=Side.SELL,
                                     order_type='MARKET',
@@ -109,20 +91,23 @@ class BaseStrategy(bt.Strategy):
             if self.trading_signal==TradingWay.CLOSE_THEN_SHORT:
                 result=self.client.close_then_place(symbol=self.p.pair,
                                 side=Side.SELL,
-                                order_type='MARKET',
-                                quantity=int(self.open_amount/self.close_price[0]))
-                if result is not None:
-                    direction='多' if float(result.get("origQty"))>0 else "空"
-                    self.logger.info(f'反转信号出现：平多并做空，品种：{self.p.pair},数量：{abs(float(result.get("origQty")))},方向:{direction}')
+                                order_type='LIMIT',
+                                price=fs_ask_price,
+                                quantity=int(self.open_amount/self.close_price[0]),
+                                timeInForce='GTC')
+                if result is not None and result:
+                    direction='多' if result.get("side")=="BUY" else "空"
+                    self.trade_logger.info(f'反转信号出现：平多并做空，品种：{self.p.pair},数量：{abs(float(result.get("origQty")))},方向:{direction}')
             if self.trading_signal==TradingWay.CLOSE_THEN_LONG:
                 result=self.client.close_then_place(symbol=self.p.pair,
                                 side=Side.BUY,
-                                order_type='MARKET',
-                                quantity=int(self.open_amount/self.close_price[0]))
-                if result is not None:
-                    direction='多' if float(result.get("origQty"))>0 else "空"
-                    self.logger.info(f'反转信号出现：平空并做多，品种：{self.p.pair},数量：{abs(float(result.get("origQty")))},方向:{direction}')
-                            
+                                order_type='LIMIT',
+                                price=fs_bid_price,
+                                quantity=int(self.open_amount/self.close_price[0]),
+                                timeInForce='GTC')
+                if result is not None and result:
+                    direction='多' if result.get("side")=="BUY" else "空"
+                    self.trade_logger.info(f'反转信号出现：平空并做多，品种：{self.p.pair},数量：{abs(float(result.get("origQty")))},方向:{direction}')
     def notify_order(self,order):
         if self.p.log_hidden:
             return

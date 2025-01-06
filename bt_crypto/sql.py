@@ -36,6 +36,7 @@ class Sqldb():
             )
             result=cursor.fetchall()
             print(result)
+            return result
     def table_creator(
         self,
         table_name:str,

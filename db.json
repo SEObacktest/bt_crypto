@@ -2,8 +2,8 @@
     "basic_setting": {
         "log_hidden": 1,
         "position_to_balance": 0.15,
-        "pair": "DOGEUSDT",
-        "livetrade": true
+        "pair": "DOGE",
+        "livetrade": false
     },
     "cerebro": {
         "init_cash": 10000,
@@ -17,12 +17,12 @@
     "data": {
         "pairs": {
             "BTCUSDT": {
-                "start_time": "20241010",
+                "start_time": "20200101",
                 "end_time": "20241208",
-                "interval": "1d"
+                "interval": "1h"
             },
-            "ETHBTC": {
-                "start_time": "20241010",
+            "ETHUSDT": {
+                "start_time": "20201010",
                 "end_time": "20241202",
                 "interval": "1d"
             },
