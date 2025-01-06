@@ -2,7 +2,7 @@
     "basic_setting": {
         "log_hidden": 1,
         "position_to_balance": 0.15,
-        "pair": "DOGE",
+        "pair": "DOGEUSDT",
         "livetrade": false
     },
     "cerebro": {
