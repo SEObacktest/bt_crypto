@@ -24,6 +24,7 @@ def main():
                 end_time=time.time()
                 execution_time = end_time - start_time
                 print(f"Execution time: {execution_time:.2f} seconds")
+                time.sleep(0.5)
             except Exception as e:
                 logger.error(f"An eror occurred:{e}")
                 time.sleep(5) 

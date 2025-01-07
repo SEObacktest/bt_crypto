@@ -3,7 +3,7 @@
         "log_hidden": 1,
         "position_to_balance": 0.15,
         "pair": "DOGEUSDT",
-        "livetrade": false
+        "livetrade": true
     },
     "cerebro": {
         "init_cash": 10000,

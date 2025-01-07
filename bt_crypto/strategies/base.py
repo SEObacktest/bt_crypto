@@ -64,7 +64,6 @@ class BaseStrategy(bt.Strategy):
             print(f'Latest price={self.close_price[0]}')
             hold_position = self.client.get_certain_position(self.p.pair)
             self.trading_signal=self.gen_trading_signal()
-            self.trading_signal=TradingWay.CLOSE
             self.client.order_chaser(self.p.pair,300)
             fs_bid_price=self.client.get_bid_price(symbol=self.p.pair)
             fs_ask_price=self.client.get_bid_price(symbol=self.p.pair,direction='asks')
