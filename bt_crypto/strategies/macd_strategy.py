@@ -1,48 +1,36 @@
+from bt_crypto.strategies.base import BaseStrategy, TradingWay
 import backtrader as bt
 import datetime
-from bt_crypto.strategies.base import BaseStrategy,TradingWay
+
 class Strategy(BaseStrategy):
     params = (
-        ('fast', 12),
-        ('slow', 26),
-        ('signal', 9),
-             )
+        ('volume_percent', 1),
+        ("moving_period", 20),
+        ("tb_period", 20),
+        ("quit_period", 10),
+    )
+
     def __init__(self):
         super().__init__()
-        self.macd=bt.indicators.MACD(
-                self.close_price,
-                period_me1=self.p.fast,
-                period_me2=self.p.slow,
-                period_signal=self.p.signal,
-        )
-        self.crossover=bt.indicators.CrossOver(self.macd.macd,self.macd.signal)
-        self.sizer=bt.sizers.PercentSizer(percents=20)
+        self.volume_avg = bt.indicators.Average(self.data.volume, period=self.p.moving_period)
+        
+        # Use data lines instead of methods
+        self.DonchianH_entry = bt.indicators.Highest(self.data.high, period=self.params.tb_period)
+        self.DonchianL_entry = bt.indicators.Lowest(self.data.low, period=self.params.tb_period)
+
+        self.DonchianH_exit = bt.indicators.Highest(self.data.high, period=self.params.quit_period)
+        self.DonchianL_exit = bt.indicators.Lowest(self.data.low, period=self.params.quit_period)
+
     def next(self):
-        a=self.gen_trading_signal()
-    def gen_trading_signal(self)->TradingWay:
-        if self.broker.getposition(self.data).size==0:
-            if self.crossover[0] >0:
-                self.buy(
-                    size=self.broker.get_value()*self.p.position_to_balance/self.close_price[0]
-                    )
-                return TradingWay.CLOSE_THEN_LONG
-            if self.crossover[0]<0:
-                self.sell(
-                    size=self.broker.get_value()*self.p.position_to_balance/self.close_price[0]
-                    )
-                return TradingWay.CLOSE_THEN_SHORT
-        else:
-            if self.broker.getposition(self.data).size<0:
-                if self.crossover[0]>0:
-                    self.close()
-                    self.buy(
-                        size=self.broker.get_value()*self.p.position_to_balance/self.close_price[0]
-                    )
-                    return TradingWay.CLOSE_THEN_LONG
-            else:
-                if self.crossover[0]<0:
-                    self.close()
-                    self.sell(
-                        size=self.broker.get_value()*self.p.position_to_balance/self.close_price[0]
-                    )
-                    return TradingWay.CLOSE_THEN_SHORT
+        if_volume = self.data.volume[0] > self.volume_avg[-1] * (1 + self.p.volume_percent)
+        
+        if self.broker.getposition(self.data).size > 0:
+            self.close()
+        
+        if self.data.close[0] > self.DonchianH_entry[-1] and if_volume:
+            size = self.broker.get_value() * 0.3 / self.data.close[0]
+            self.buy(size=size)
+        
+        elif self.data.close[0] < self.DonchianL_entry[-1] and if_volume:
+            size = self.broker.get_value() * 0.3 / self.data.close[0]
+            self.sell(size=size)

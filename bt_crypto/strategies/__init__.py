@@ -10,5 +10,7 @@ def get_strategy(name,**kwarg):
                     module=importlib.util.module_from_spec(spec)
                     sys.modules[name] = module
                     spec.loader.exec_module(module)
+                    if module.Strategy is None:
+                        print("it's None")
                     return module.Strategy
     return None

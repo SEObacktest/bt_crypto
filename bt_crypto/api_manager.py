@@ -84,7 +84,7 @@ class ApiManager():
     def close_certain_position(self,symbol:str):
         if self.get_certain_position(symbol) is None:
             print('you dont have any position')
-            return
+            return False
         amount=float(self.get_certain_position(symbol))
         bid_price=self.get_bid_price(symbol)
         ask_price=self.get_bid_price(symbol,direction='asks')
@@ -98,6 +98,7 @@ class ApiManager():
                     reduceOnly='true',
                     timeInForce='GTC',
                     price=bid_price if amount<0 else ask_price)
+        return True
     def close_then_place(self,symbol:str,side:Side,order_type:str,quantity:float,price:float=None,**kwargs)->str:
         live_orders= self.db.get_live_orders()
         if live_orders:
@@ -227,6 +228,9 @@ class ApiManager():
         except Exception as e:
             self.logger.error(f"获取订单时发生错误: {str(e)}")
             return []
+    def votilation_caculator(self,interval,start,end):
+       pass 
+
 if __name__=='__main__':
     config=Config()
     logger=Logger('database')

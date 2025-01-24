@@ -64,7 +64,6 @@ class BaseStrategy(bt.Strategy):
             print(f'Latest price={self.close_price[0]}')
             hold_position = self.client.get_certain_position(self.p.pair)
             self.trading_signal=self.gen_trading_signal()
-            self.trading_signal=TradingWay.CLOSE
             self.client.order_chaser(self.p.pair,300)
             fs_bid_price=self.client.get_bid_price(symbol=self.p.pair)
             fs_ask_price=self.client.get_bid_price(symbol=self.p.pair,direction='asks')
@@ -72,7 +71,9 @@ class BaseStrategy(bt.Strategy):
             if self.trading_signal is None:
                 print('no signal detected')
             if self.trading_signal == TradingWay.CLOSE:
-                self.client.close_certain_position(self.p.pair)
+                close_result=self.client.close_certain_position(self.p.pair)
+                if close_result:
+                    self.trade_logger.info(f'平仓，品种：{self.p.pair},数量：{open_quantity}')
             if self.trading_signal==TradingWay.LONG:
                 print(self.close_price[0])
                 print(int(self.open_amount/self.close_price[0]))

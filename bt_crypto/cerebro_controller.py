@@ -83,7 +83,17 @@ class CerebroController():
                     base_strategy_params=self.bt_config.get_basic_setting()
                     opt_strategy=cerebro.optstrategy(strategy_module,**param,**base_strategy_params) 
                     results=cerebro.run(maxcpu=1)  
-
+    def single_strategy_opt(self,curr_strategy=None):
+        cerebro=self.cerebro_init()
+        data=self._get_trading_data()
+        cerebro.adddata(data)
+        str_strategy=self.bt_config.get_cerebro_config()['curr_strategy']
+        strategy=get_strategy(curr_strategy or str_strategy)
+        strategy_info=self.bt_config.get_strategy_config(str_strategy)
+        base_strategy_params=self.bt_config.get_basic_setting()
+        param=self._create_strategy_params(strategy_info)
+        cerebro.optstrategy(strategy,**param,**base_strategy_params)
+        cerebro.run(maxcpu=1)
     def _create_strategy_params(self, strategy_info):
         params = {}
         for param_name, param_config in strategy_info['parameters'].items():
